@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import norm, ttest_ind, ttest_rel, levene
-import streamlit as st
+import streamlit as st## Finding day of year
+from datetime import datetime
 
 # session_seed = 1
 
@@ -16,8 +17,8 @@ neg_acknowledgers = ["That's ok", "That's alright", "No problem"]
 exclamations = ['!','.']
 
 @st.cache
-def generate_acks(m,n):
-    # np.random.seed(sesh_seed)
+def generate_acks(m,n,seed):
+    np.random.seed(seed)
     acks = []
     neg_acks = []
     for i in range(m):
@@ -26,7 +27,8 @@ def generate_acks(m,n):
         neg_acks.append(neg_acknowledgers[np.random.randint(0,len(neg_acknowledgers))] + exclamations[np.random.randint(0,len(exclamations))])
     return acks , neg_acks
 
-acks = generate_acks(10,10)
+day_of_year = datetime.now().timetuple().tm_yday
+acks = generate_acks(10,10,day_of_year)
 
 
 # conduct independent samples t-test
