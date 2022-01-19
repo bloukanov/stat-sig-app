@@ -109,9 +109,9 @@ if plan_eval == 'Evaluate a test':
     or a difference in means, such as average gift.''')
 
     if means_rates == 'Difference in rates':
-        st.write(acks[0][1] + ''' Input the number of actions taken by each group, and the number of
-        opportunities each had to take this action. For example, for email CTR, this would be clicks 
-        and emails received, respectively.''')
+        st.write(acks[0][1] + ''' We'll conduct a [pooled two-proportion z-test] (https://en.wikipedia.org/wiki/Test_statistic#Common_test_statistics). 
+        Input the number of actions taken by each group, and the number of opportunities each had to take this action. 
+        For example, for email CTR, this would be clicks and emails received, respectively.''')
         with st.form('submit_rate_inputs'):
             col1, col2 = st.columns(2)
             acts1 = col1.number_input('Actions taken by Group 1',0)
@@ -120,7 +120,6 @@ if plan_eval == 'Evaluate a test':
             n2 = col2.number_input('Opportunities for Group 2',1)
 
             rates_submit = st.form_submit_button()
-            # source: https://www.statisticshowto.com/probability-and-statistics/hypothesis-testing/z-test/#:~:text=This%20tests%20for%20a%20difference,proportions%20are%20not%20the%20same.
             if rates_submit:
                 p = (acts1+acts2)/(n1+n2)
                 rate1 = acts1/n1
@@ -128,14 +127,38 @@ if plan_eval == 'Evaluate a test':
                 pval = 2*norm.cdf(-1*abs((rate1-rate2)/np.sqrt(p*(1-p)*(1/n1+1/n2))))
                 st.write('Rate 1: {:.4f}. Rate 2: {:.4f}. Rate difference: {:.4f}'.format(rate1,rate2,rate1-rate2))
                 st.write('P-Value: '+'{:.3f}'.format(pval))
-                if pval < .01:
-                    st.success('This difference is significant at the 1% level.')
-                elif pval < .05:
-                    st.success('This difference is significant at the 5% level.')
-                elif pval < .1:
-                    st.success('This difference is significant at the 10% level.')
+                # if sample size assumptions are met
+                if acts1 >= 5 and acts2 >= 5 and n1-acts1 >= 5 and n2-acts2 >= 5: 
+                    if pval < .01:
+                        st.success('This difference is significant at the 1% level.')
+                    elif pval < .05:
+                        st.success('This difference is significant at the 5% level.')
+                    elif pval < .1:
+                        st.success('This difference is significant at the 10% level.')
+                    else:
+                        st.warning('This difference would not typically be considered statistically significant.')
                 else:
-                    st.warning('This difference would not typically be considered statistically significant.')
+                    if pval < .01:
+                        st.warning('''This difference is significant at the 1% level.
+                        However, it is recommended that there be at least 5 action and 5 non-action observations
+                        in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
+                        ''')
+                    elif pval < .05:
+                        st.warning('''This difference is significant at the 5% level.
+                        However, it is recommended that there be at least 5 action and 5 non-action observations
+                        in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
+                        ''')
+                    elif pval < .1:
+                        st.warning('''This difference is significant at the 10% level.
+                        However, it is recommended that there be at least 5 action and 5 non-action observations
+                        in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
+                        ''')
+                    else:
+                        st.warning('''This difference would not typically be considered statistically significant.
+                        However, it is recommended that there be at least 5 action and 5 non-action observations
+                        in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
+                        ''')                  
+                
 
     elif means_rates == 'Difference in means':
         st.write(acks[0][2] + ''' Are the 2 groups independent of one another? (This will usually be the case,
