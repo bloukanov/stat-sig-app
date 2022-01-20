@@ -1,5 +1,5 @@
 pandas
 numpy
-scipy
+scipy >= 1.7.0
 streamlit
 datetime

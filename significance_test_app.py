@@ -81,16 +81,16 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         _0s_included = yes_no_bool[_0s_included]
 
         if (_0s_desired and _0s_included) or not (_0s_desired or _0s_included):
-            group1 = _group1
-            group2 = _group2
+            group1 = _group1[~pd.isna(_group1)]
+            group2 = _group2[~pd.isna(_group2)]
 
         elif _0s_desired and not _0s_included:
-            group1 = _group1.append(pd.Series(np.repeat(0,n1-len(_group1))))
-            group2 = _group2.append(pd.Series(np.repeat(0,n2-len(_group2))))
+            group1 = _group1[~pd.isna(_group1)].append(pd.Series(np.repeat(0,n1-len(_group1))))
+            group2 = _group2[~pd.isna(_group2)].append(pd.Series(np.repeat(0,n2-len(_group2))))
 
         elif (not _0s_desired) and _0s_included:
-            group1 = _group1[_group1 != 0]
-            group2 = _group2[_group2 != 0]
+            group1 = _group1[(_group1 != 0) & (~pd.isna(_group1))]
+            group2 = _group2[(_group2 != 0) & (~pd.isna(_group2))]
 
         # check for outliers.
         # note that if we find outliers and trim them with Yuen's t-test (below), we basically guarantee
@@ -100,20 +100,24 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         outliers1 = sum(_is_outlier(group1))
         outliers2 = sum(_is_outlier(group2))
         if outliers1 > 0 or outliers2 > 0:
-            # set trim fraction to the max fraction of outliers between the 2 groups
-            trim = max(outliers1/len(group1),outliers2/len(group2))
+            # set trim to the max fraction of outliers between the 2 groups. cannot be >= .5,
+            # because the impact of this number of observations will be reduced from each side of the distribution
+            trim = min(.49,max(outliers1/len(group1),outliers2/len(group2)))
         else:
             trim = 0
+        print(outliers1)
+        print(outliers2)
+        print(trim)
 
         # check for equality of variance. levene seems to not be sensitive to assumptions of normality.
-        var_test = levene(group1[~pd.isna(group1)],group2[~pd.isna(group2)])
+        var_test = levene(group1,group2)
         # print(var_test[1])
         # if p val is not significant at 10% level, assume variances are equal
         if var_test[1] >= .1:
-            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=True,trim=trim)
+            result = ttest_ind(group1,group2,equal_var=True,trim=round(trim,3))
         # otherwise, can assume they are unequal
         elif var_test[1] < .1:
-            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=False,trim=trim)
+            result = ttest_ind(group1,group2,equal_var=False,trim=round(trim,3))
 
     elif test_type == 'rel':
             group1 = _group1
@@ -126,7 +130,26 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
     pval = result[1]
     mean1 = group1.mean()
     mean2 = group2.mean()
+    # if Yuen's trimmed t-test is conducted, let the user know 
+    ntrim1 = int(np.floor(trim*len(group1))) # from scipy ttest_ind documentation
+    ntrim2 = int(np.floor(trim*len(group2)))
+    trimmed = ntrim1 > 0 or ntrim2 > 0
+    if trimmed:
+        st.write('''Note: Significant outliers were detected in your data, so we've run a [trimmed t-test] (https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test).''')
     st.write('Mean 1: {:.2f}. Mean 2: {:.2f}. Mean difference: {:.2f}'.format(mean1,mean2,mean1-mean2))
+    if trimmed:
+        # trimmed means are just the means after removing trimmed values
+        sort1  = group1.sort_values()
+        sort2 = group2.sort_values()
+        if ntrim1 == 0:
+            tmean1 = mean1
+        else:
+            tmean1 = sort1[ntrim1:-ntrim1].mean()
+        if ntrim2 == 0:
+            tmean2 = mean2
+        else:
+            tmean2 = sort2[ntrim2:-ntrim2].mean()
+        st.write('Trimmed mean 1: {:.2f}. Trimmed mean 2: {:.2f}. Trimmed mean difference: {:.2f}'.format(tmean1,tmean2,tmean1-tmean2))
     st.write('P-Value: '+'{:.3f}'.format(pval))
     if pval < .01:
         st.success('This difference is significant at the 1% level.')
@@ -134,6 +157,10 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         st.success('This difference is significant at the 5% level.')
     elif pval < .1:
         st.success('This difference is significant at the 10% level.')
+    elif np.isnan(pval):
+        st.error('''Your test result couldn't be calculated. Make sure you have at least 2
+        observations in each group!
+        ''')
     else:
         st.warning('This difference would not typically be considered statistically significant.')
 
