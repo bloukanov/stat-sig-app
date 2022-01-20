@@ -31,9 +31,47 @@ day_of_year = datetime.now().timetuple().tm_yday
 acks = generate_acks(10,10,day_of_year)
 
 
+# detect outliers function
+# --------------------------
+def is_outlier(points, thresh=3.5):
+    """
+    Returns a boolean array with True if points are outliers and False 
+    otherwise.
+
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
+    """
+    # if len(points.shape) == 1:
+        # points = points[:,None]
+    # points = np.array(points)
+    median = np.median(points, axis=0)
+    # diff = np.sum((points - median)**2, axis=-1)
+    diff = (points-median)**2
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+
+    return modified_z_score > thresh
+
+
 # conduct independent samples t-test
 # ------------------------------------
-def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1=None,n2=None):
+def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1=None,n2=None,_is_outlier = is_outlier):
 
     if test_type == 'ind':
 
@@ -54,15 +92,28 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             group1 = _group1[_group1 != 0]
             group2 = _group2[_group2 != 0]
 
+        # check for outliers.
+        # note that if we find outliers and trim them with Yuen's t-test (below), we basically guarantee
+        # normality of the test metric. the CLT is only violated if the mean of the distribution
+        # of sample means is not defined, which basically only happens when there are signifcant outliers
+        # and the distribution has a long tail.
+        outliers1 = sum(_is_outlier(group1))
+        outliers2 = sum(_is_outlier(group2))
+        if outliers1 > 0 or outliers2 > 0:
+            # set trim fraction to the max fraction of outliers between the 2 groups
+            trim = max(outliers1/len(group1),outliers2/len(group2))
+        else:
+            trim = 0
+
         # check for equality of variance. levene seems to not be sensitive to assumptions of normality.
         var_test = levene(group1[~pd.isna(group1)],group2[~pd.isna(group2)])
         # print(var_test[1])
         # if p val is not significant at 10% level, assume variances are equal
         if var_test[1] >= .1:
-            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=True)
+            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=True,trim=trim)
         # otherwise, can assume they are unequal
         elif var_test[1] < .1:
-            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=False)
+            result = ttest_ind(group1,group2,nan_policy='omit',equal_var=False,trim=trim)
 
     elif test_type == 'rel':
             group1 = _group1
@@ -98,7 +149,7 @@ st.title('Statistical Significance Workbook')
 st.write('''Hi there! This workbook can help you plan a new test, or determine 
 if the results of your recent test were statistically significant. Please use the sidebar to
 select which you'd like to do.''')
-plan_eval = st.sidebar.selectbox('Plan or Evaluate?',['Select one','Plan for a test', 'Evaluate a test'])
+plan_eval = st.sidebar.selectbox('Plan or Evaluate?',['Select one','Plan a test', 'Evaluate a test'])
 
 # st.write('')
 # st.write('To begin, please use the sidebar to choose ')
@@ -188,7 +239,7 @@ if plan_eval == 'Evaluate a test':
 
                     elif (rev_per_sess == 'Yes' and _0s_in_data == 'No'):
                         st.write(acks[1][0] + ''' I can adjust that for you. Enter the total number of observations for each group
-                        (including those without a transaction), and then upload a csv with your data in columns named 'Group1' and 'Group2.'
+                        (including those without a transaction), and then upload a csv with your transactions data in columns named 'Group1' and 'Group2.'
                         Then click Submit.
                         ''')
                         col3, col4 = st.columns(2)
@@ -220,5 +271,21 @@ if plan_eval == 'Evaluate a test':
                     df = pd.read_csv(upload)
                     custom_ttest(df.Group1,df.Group2,'rel')
 
-elif plan_eval == 'Plan for a test':
-    st.write('Under construction!')
+elif plan_eval == 'Plan a test':
+    # st.write('Under construction!')
+    st.write(acks[0][7] + '''
+    Have you decided on a test metric yet?
+    ''')
+    metric_ready = st.sidebar.selectbox('Metric ready?',['Select one','Yes','No'])
+    if metric_ready == 'No':
+        st.write(acks[1][2] + '''
+        There are several things to consider when choosing the primary metric for your test. 
+        ''')
+        st.write('''
+        A rate metric, such as Click Through Rate (CTR), will require the smallest sample size 
+        and therefore least test runtime to produce a satisfactory result. 
+        ''')
+        st.write('''If you want to measure a difference in giving behavior, you can use 
+        a metric such as average gift. This can be misleading, though, so be careful.
+        Group 1 could have 1,000 $99 gifts, and Group 2 just 1 $100 gift
+        ''')
