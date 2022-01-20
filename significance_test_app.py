@@ -75,6 +75,14 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
 
     if test_type == 'ind':
 
+        # check for outliers, not counting 0s.
+        # note that if we find outliers and trim them with Yuen's t-test (below), we basically guarantee
+        # normality of the test metric. the CLT is only violated if the mean of the distribution
+        # of sample means is not defined, which basically only happens when there are signifcant outliers
+        # and the distribution has a long tail.
+        outliers1 = sum(_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))]))
+        outliers2 = sum(_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))]))
+
         yes_no_bool = {'Yes':True,'No':False}
 
         _0s_desired = yes_no_bool[_0s_desired]
@@ -92,13 +100,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             group1 = _group1[(_group1 != 0) & (~pd.isna(_group1))]
             group2 = _group2[(_group2 != 0) & (~pd.isna(_group2))]
 
-        # check for outliers.
-        # note that if we find outliers and trim them with Yuen's t-test (below), we basically guarantee
-        # normality of the test metric. the CLT is only violated if the mean of the distribution
-        # of sample means is not defined, which basically only happens when there are signifcant outliers
-        # and the distribution has a long tail.
-        outliers1 = sum(_is_outlier(group1))
-        outliers2 = sum(_is_outlier(group2))
+        # if there were outliers, set trim value using new group length (if we added 0s)
         if outliers1 > 0 or outliers2 > 0:
             # set trim to the max fraction of outliers between the 2 groups. cannot be >= .5,
             # because the impact of this number of observations will be reduced from each side of the distribution
