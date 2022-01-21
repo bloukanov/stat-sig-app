@@ -334,3 +334,5 @@ elif plan_eval == 'Plan a test':
         can do that for you under 'Evaluate a test'). However, because RPV incorporates variance
         both from CR _and_ from AG, it requires the largest sample size.
         ''')
+    elif metric_ready == 'Yes':
+        st.write('Under construction!')
