@@ -137,8 +137,10 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
     ntrim2 = int(np.floor(trim*len(group2)))
     trimmed = ntrim1 > 0 or ntrim2 > 0
     if trimmed:
-        st.write('''Note: Significant outliers were detected in your data, so we've run a [trimmed t-test] (https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test).''')
-    st.write('Mean 1: {:.2f}. Mean 2: {:.2f}. Mean difference: {:.2f}'.format(mean1,mean2,mean1-mean2))
+        st.write('''Significant outliers were detected in your data, so we've run a [trimmed t-test] (https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test).
+        This compares the "trimmed means," i.e. the means after removing the outliers, but still includes the outliers for the variance
+        calculation. The overall effect is to reduce the impact of the outliers on the significance test.''')
+    st.markdown('Mean 1: **{:.2f}**. Mean 2: **{:.2f}**. Mean difference: **{:.2f}**'.format(mean1,mean2,mean1-mean2))
     if trimmed:
         # trimmed means are just the means after removing trimmed values
         sort1  = group1.sort_values()
@@ -151,8 +153,8 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             tmean2 = mean2
         else:
             tmean2 = sort2[ntrim2:-ntrim2].mean()
-        st.write('Trimmed mean 1: {:.2f}. Trimmed mean 2: {:.2f}. Trimmed mean difference: {:.2f}'.format(tmean1,tmean2,tmean1-tmean2))
-    st.write('P-Value: '+'{:.3f}'.format(pval))
+        st.markdown('Trimmed mean 1: **{:.2f}**. Trimmed mean 2: **{:.2f}**. Trimmed mean difference: **{:.2f}**'.format(tmean1,tmean2,tmean1-tmean2))
+    st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
     if pval < .01:
         st.success('This difference is significant at the 1% level.')
     elif pval < .05:
@@ -249,9 +251,9 @@ if plan_eval == 'Evaluate a test':
         # print(ind)  
         if ind == 'Yes':
             st.write(acks[0][3] + ''' We'll conduct an [independent samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Independent_(unpaired)_samples). 
-            Would you like to account for emails or sessions that did not
-            result in a gift? This metric would be revenue per visitor or session, as opposed to average gift.
-            You can read more about the relationship between conversion rate, average gift, and revenue per visitor [here] (https://vwo.com/blog/important-ecommerce-metrics/).
+            If you are assessing online giving, would you like to account for sessions that did not
+            result in a gift? This metric would be total revenue per visitor, as opposed to average gift.
+            You can read more about the relationship between conversion rate, average order value, and revenue per visitor [here] (https://vwo.com/blog/important-ecommerce-metrics/).
             ''')
             rev_per_sess = st.sidebar.selectbox('Consider all sessions?',['Select one','Yes','No'])
             if rev_per_sess != 'Select one':
@@ -310,11 +312,22 @@ elif plan_eval == 'Plan a test':
         st.write(acks[1][2] + '''
         There are several things to consider when choosing the primary metric for your test. 
         ''')
-        st.write('''
-        A rate metric, such as Click Through Rate (CTR), will require the smallest sample size 
-        and therefore least test runtime to produce a satisfactory result. 
+        st.markdown('''
+        A rate metric, such as **Conversion Rate (CR)**, will require the smallest sample size 
+        and therefore the least test runtime to produce a satisfactory result. 
         ''')
-        st.write('''If you want to measure a difference in giving behavior, you can use 
-        a metric such as average gift. This can be misleading, though, so be careful.
-        Group 1 could have 1,000 $99 gifts, and Group 2 just 1 $100 gift
+        st.markdown('''If you want to measure a difference in giving behavior, you can use 
+        a metric such as **Average Gift (AG)**. This can be misleading, though, so be careful.
+        Imagine you have two groups of the same size; Group 1 gave 1,000 $99 gifts, and Group 2 
+        gave just 1 $100 gift. A comparison of AG would show that Group 2 performed better, but 
+        it also produced far less revenue because the CR was far lower. 
+        ''')
+        st.markdown('''
+        That's why sometimes you'll want to evaluate total **Revenue per Visitor (RPV)**. 
+        This takes into account both the CR differennces between the groups, and the differences 
+        in AG. RPV = CR * AG. In other words, it first asks how many visitors actually gave a gift, 
+        and then what was their average gift amount. The way to run a significance test on RPV
+        is to add all the visitors to the site who did not give as 0's to the transactions data (I
+        can do that for you under 'Evaluate a test'). However, because RPV incorporates variance
+        both from CR _and_ from AG, it requires the largest sample size.
         ''')
