@@ -209,8 +209,8 @@ if plan_eval == 'Evaluate a test':
                 rate1 = acts1/n1
                 rate2 = acts2/n2
                 pval = 2*norm.cdf(-1*abs((rate1-rate2)/np.sqrt(p*(1-p)*(1/n1+1/n2))))
-                st.write('Rate 1: {:.4f}. Rate 2: {:.4f}. Rate difference: {:.4f}'.format(rate1,rate2,rate1-rate2))
-                st.write('P-Value: '+'{:.3f}'.format(pval))
+                st.markdown('Rate 1: **{:.4f}**. Rate 2: **{:.4f}**. Rate difference: **{:.4f}**'.format(rate1,rate2,rate1-rate2))
+                st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
                 # if sample size assumptions are met
                 if acts1 >= 5 and acts2 >= 5 and n1-acts1 >= 5 and n2-acts2 >= 5: 
                     if pval < .01:
@@ -251,9 +251,12 @@ if plan_eval == 'Evaluate a test':
         # print(ind)  
         if ind == 'Yes':
             st.write(acks[0][3] + ''' We'll conduct an [independent samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Independent_(unpaired)_samples). 
-            If you are assessing online giving, would you like to account for sessions that did not
-            result in a gift? This metric would be total revenue per visitor, as opposed to average gift.
-            You can read more about the relationship between conversion rate, average order value, and revenue per visitor [here] (https://vwo.com/blog/important-ecommerce-metrics/).
+            If you're assessing online giving amounts, would you like to account for sessions that did not
+            result in a gift? (If you are not specifically assessing online giving amounts, just select 'No' for the next
+            two questions.) This metric would be total revenue per visitor, as opposed to average gift.
+            You can read more about these metrics under 'Plan a test,' and even more
+            [here] (https://vwo.com/blog/important-ecommerce-metrics/) (average order value is the ecommerce
+            equivalent of average gift).
             ''')
             rev_per_sess = st.sidebar.selectbox('Consider all sessions?',['Select one','Yes','No'])
             if rev_per_sess != 'Select one':
