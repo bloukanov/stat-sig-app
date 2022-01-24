@@ -114,7 +114,12 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             trim = 0
         print(outliers1)
         print(outliers2)
-        # print(trim)
+
+        print(min(_group1[(_group1 != 0) & (~pd.isna(_group1))][_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))])]))        
+        print(min(_group2[(_group2 != 0) & (~pd.isna(_group2))][_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))])]))        
+
+
+        print(trim)
 
         # check for equality of variance. levene seems to not be sensitive to assumptions of normality.
         var_test = levene(group1,group2)
