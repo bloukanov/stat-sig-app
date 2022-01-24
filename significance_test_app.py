@@ -80,8 +80,13 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         # normality of the test metric. the CLT is only violated if the mean of the distribution
         # of sample means is not defined, which basically only happens when there are signifcant outliers
         # and the distribution has a long tail.
+        # we will not include $0 transactions when determining outliers, because all nonzero values may be determined
+        # to be outliers, and normality will still hold as long as there are no outliers within the nonzero data.
         outliers1 = sum(_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))]))
         outliers2 = sum(_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))]))
+
+        group1_nona = _group1[~pd.isna(_group1)]
+        group2_nona = _group2[~pd.isna(_group2)]
 
         yes_no_bool = {'Yes':True,'No':False}
 
@@ -89,16 +94,16 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         _0s_included = yes_no_bool[_0s_included]
 
         if (_0s_desired and _0s_included) or not (_0s_desired or _0s_included):
-            group1 = _group1[~pd.isna(_group1)]
-            group2 = _group2[~pd.isna(_group2)]
+            group1 = group1_nona
+            group2 = group2_nona
 
         elif _0s_desired and not _0s_included:
-            group1 = _group1[~pd.isna(_group1)].append(pd.Series(np.repeat(0,n1-len(_group1))))
-            group2 = _group2[~pd.isna(_group2)].append(pd.Series(np.repeat(0,n2-len(_group2))))
+            group1 = group1_nona.append(pd.Series(np.repeat(0,n1-len(group1_nona))))
+            group2 = group2_nona.append(pd.Series(np.repeat(0,n2-len(group2_nona))))
 
         elif (not _0s_desired) and _0s_included:
-            group1 = _group1[(_group1 != 0) & (~pd.isna(_group1))]
-            group2 = _group2[(_group2 != 0) & (~pd.isna(_group2))]
+            group1 = group1_nona[group1_nona != 0]
+            group2 = group2_nona[group2_nona != 0]
 
         # if there were outliers, set trim value using new group length (if we added 0s)
         if outliers1 > 0 or outliers2 > 0:
@@ -109,7 +114,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             trim = 0
         print(outliers1)
         print(outliers2)
-        print(trim)
+        # print(trim)
 
         # check for equality of variance. levene seems to not be sensitive to assumptions of normality.
         var_test = levene(group1,group2)
@@ -124,10 +129,12 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
     elif test_type == 'rel':
             group1 = _group1
             group2 = _group2
-            result = ttest_rel(group1,group2,nan_policy='omit')
+            result = ttest_rel(group1,group2)
 
     # print(len(group1))
     # print(len(group2))
+    # print(sum(group1))
+    # print(sum(group2))
 
     pval = result[1]
     mean1 = group1.mean()
