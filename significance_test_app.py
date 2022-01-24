@@ -110,14 +110,14 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             # set trim to the max fraction of outliers between the 2 groups. cannot be >= .5,
             # because the impact of this number of observations will be reduced from each side of the distribution
             trim = min(.49,max(outliers1/len(group1),outliers2/len(group2)))
+
+            # print(min(_group1[(_group1 != 0) & (~pd.isna(_group1))][_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))])]))        
+            # print(min(_group2[(_group2 != 0) & (~pd.isna(_group2))][_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))])]))        
+
         else:
             trim = 0
         print(outliers1)
         print(outliers2)
-
-        print(min(_group1[(_group1 != 0) & (~pd.isna(_group1))][_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))])]))        
-        print(min(_group2[(_group2 != 0) & (~pd.isna(_group2))][_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))])]))        
-
 
         print(trim)
 
@@ -147,6 +147,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
     # if Yuen's trimmed t-test is conducted, let the user know 
     ntrim1 = int(np.floor(trim*len(group1))) # from scipy ttest_ind documentation
     ntrim2 = int(np.floor(trim*len(group2)))
+    print(ntrim1)
     trimmed = ntrim1 > 0 or ntrim2 > 0
     if trimmed:
         st.write('''Significant outliers were detected in your data, so we've run a [trimmed t-test] (https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test).
@@ -157,21 +158,33 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         # trimmed means are just the means after removing trimmed values
         sort1  = group1.sort_values()
         sort2 = group2.sort_values()
+        
         if ntrim1 == 0:
             tmean1 = mean1
+            trimmed_vals1 = pd.Series({1:'None'}).rename('Group 1 trimmed values')
         else:
             tmean1 = sort1[ntrim1:-ntrim1].mean()
+            trimmed_vals1 = sort1[:ntrim1].append(sort1[-ntrim1:])
+            # make index start with 1 to be user-friendly
+            trimmed_vals1.index = np.arange(1,len(trimmed_vals1) + 1)
         if ntrim2 == 0:
             tmean2 = mean2
+            trimmed_vals2 = pd.Series({1:'None'}).rename('Group 2 trimmed values')
         else:
             tmean2 = sort2[ntrim2:-ntrim2].mean()
+            trimmed_vals2 = sort2[:ntrim2].append(sort2[-ntrim2:])
+            # make index start with 1 to be user-friendly
+            trimmed_vals2.index = np.arange(1,len(trimmed_vals2) + 1)
+
+        
         st.markdown('Trimmed mean 1: **{:.2f}**. Trimmed mean 2: **{:.2f}**. Trimmed mean difference: **{:.2f}**'.format(tmean1,tmean2,tmean1-tmean2))
+    
     st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
-    if pval < .01:
+    if round(pval,3) <= .010:
         st.success('This difference is significant at the 1% level.')
-    elif pval < .05:
+    elif round(pval,3) <= .050:
         st.success('This difference is significant at the 5% level.')
-    elif pval < .1:
+    elif round(pval,3) <= .100:
         st.success('This difference is significant at the 10% level.')
     elif np.isnan(pval):
         st.error('''Your test result couldn't be calculated. Make sure you have at least 2
@@ -179,6 +192,16 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         ''')
     else:
         st.warning('This difference would not typically be considered statistically significant.')
+
+    if trimmed:
+        st.write('''
+        You can see the trimmed values below. Note that the same proportion of values must be removed from both ends
+        of each group. In this case, we removed {:.3%} of observations from each end (if this rounds to 0, none will be removed).
+        '''.format(trim))
+        col5, col6 = st.columns(2)
+        col5.write(trimmed_vals1.rename('Group 1 trimmed values'))
+        col6.write(trimmed_vals2.rename('Group 2 trimmed values'))
+
 
 
 
@@ -225,26 +248,26 @@ if plan_eval == 'Evaluate a test':
                 st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
                 # if sample size assumptions are met
                 if acts1 >= 5 and acts2 >= 5 and n1-acts1 >= 5 and n2-acts2 >= 5: 
-                    if pval < .01:
+                    if round(pval,3) <= .010:
                         st.success('This difference is significant at the 1% level.')
-                    elif pval < .05:
+                    elif round(pval,3) <= .050:
                         st.success('This difference is significant at the 5% level.')
-                    elif pval < .1:
+                    elif round(pval,3) <= .100:
                         st.success('This difference is significant at the 10% level.')
                     else:
                         st.warning('This difference would not typically be considered statistically significant.')
                 else:
-                    if pval < .01:
+                    if round(pval,3) <= .010:
                         st.warning('''This difference is significant at the 1% level.
                         However, it is recommended that there be at least 5 action and 5 non-action observations
                         in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
                         ''')
-                    elif pval < .05:
+                    elif round(pval,3) <= .050:
                         st.warning('''This difference is significant at the 5% level.
                         However, it is recommended that there be at least 5 action and 5 non-action observations
                         in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
                         ''')
-                    elif pval < .1:
+                    elif round(pval,3) <= .100:
                         st.warning('''This difference is significant at the 10% level.
                         However, it is recommended that there be at least 5 action and 5 non-action observations
                         in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
