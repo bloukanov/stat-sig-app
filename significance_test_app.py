@@ -286,20 +286,35 @@ if plan_eval == 'Evaluate a test':
         if ind == 'Yes':
             st.write(acks[0][3] + ''' We'll conduct an [independent samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Independent_(unpaired)_samples). 
             If you're assessing an ad campaign or website test, would you like to account for recipients or visitors who did not
-            result in a gift? (If you are not assessing one of these these, just select 'No' for the next
-            two questions.) This metric would be total revenue per recipient or visitor, as opposed to average gift.
+            make a gift? (If you are not assessing one of these, just select 'No'.) This metric would be total revenue per recipient or visitor, as opposed to average gift.
             You can read more about these metrics under 'Plan a test,' and even more
             [here] (https://vwo.com/blog/important-ecommerce-metrics/) (average order value is the ecommerce
             equivalent of average gift).
             ''')
             rev_per_sess = st.sidebar.selectbox('Consider all recipients or visitors?',['Select one','Yes','No'])
-            if rev_per_sess != 'Select one':
+            if rev_per_sess == 'No':
+                st.write(acks[0][6] + ''' Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit.
+                Your data should be at the transaction (not constituent) level, and your evaluation 
+                metric will be average gift.
+                ''')
+                _0s_in_data = 'No'
+                total_obs1 = None
+                total_obs2 = None
+                with st.form('submit mean inputs 0'):
+                    upload = st.file_uploader('Upload data', type='csv')
+                    means0submit = st.form_submit_button()
+                    if means0submit:
+                        df = pd.read_csv(upload)
+                        custom_ttest(df.Group1,df.Group2,'ind',rev_per_sess,_0s_in_data,n1=total_obs1,n2=total_obs2)
+                
+            
+            elif rev_per_sess == 'Yes':
                 st.write(acks[0][4] + ''' Does your data have 0's to represent recipients or visitors without a transaction?''')
                 _0s_in_data = st.sidebar.selectbox('Data for every session?',['Select one','Yes','No'])
 
                 if _0s_in_data != 'Select one':
-
-                    if rev_per_sess == 'Yes' and _0s_in_data == 'Yes':
+                    
+                    if _0s_in_data == 'Yes':
                         st.write(acks[0][5] + ''' Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit.
                         If your data is at the transaction level, your evaluation metric will be revenue per session. If it is grouped to the constituent
                         level, it will be revenue per constituent.
@@ -307,15 +322,16 @@ if plan_eval == 'Evaluate a test':
                         total_obs1 = None
                         total_obs2 = None
 
-                    elif rev_per_sess == 'No' and _0s_in_data == 'No':
-                        st.write(acks[0][6] + ''' Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit.
-                        Your data should be at the transaction (not constituent) level, and your evaluation 
-                        metric will be average gift.
-                        ''')
-                        total_obs1 = None
-                        total_obs2 = None
+                    # elif rev_per_sess == 'No':
+                    #     st.write(acks[0][6] + ''' Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit.
+                    #     Your data should be at the transaction (not constituent) level, and your evaluation 
+                    #     metric will be average gift.
+                    #     ''')
+                    #      _0s_in_data = 'No'
+                    #     total_obs1 = None
+                    #     total_obs2 = None
 
-                    elif (rev_per_sess == 'Yes' and _0s_in_data == 'No'):
+                    elif _0s_in_data == 'No':
                         st.write(acks[1][0] + ''' I can adjust that for you. Enter the total number of observations for each group
                         (including those without a transaction), and then upload a csv with your transactions data in columns named 'Group1' and 'Group2.'
                         Then click Submit. If your data is at the transaction level, the number of observations should be the total number of sessions or ad impressions,
@@ -325,13 +341,13 @@ if plan_eval == 'Evaluate a test':
                         col3, col4 = st.columns(2)
                         total_obs1 = col3.number_input('Total observations for Group 1',1)
                         total_obs2 = col4.number_input('Total observations for Group 2',1)
-                    elif (rev_per_sess == 'No' and _0s_in_data == 'Yes'):
-                        st.write(acks[1][1] + ''' I'll remove the 0's for you. Upload a csv with your data in 
-                        columns named 'Group1' and 'Group2,' and click Submit. Your data should be at the transaction (not constituent) level, and your evaluation 
-                        metric will be average gift.
-                        ''')
-                        total_obs1 = None
-                        total_obs2 = None
+                    # elif (rev_per_sess == 'No' and _0s_in_data == 'Yes'):
+                    #     st.write(acks[1][1] + ''' I'll remove the 0's for you. Upload a csv with your data in 
+                    #     columns named 'Group1' and 'Group2,' and click Submit. Your data should be at the transaction (not constituent) level, and your evaluation 
+                    #     metric will be average gift.
+                    #     ''')
+                    #     total_obs1 = None
+                    #     total_obs2 = None
 
                     with st.form('submit mean inputs 1'):
                         upload = st.file_uploader('Upload data', type='csv')
