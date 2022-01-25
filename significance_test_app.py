@@ -109,7 +109,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         if outliers1 > 0 or outliers2 > 0:
             # set trim to the max fraction of outliers between the 2 groups. cannot be >= .5,
             # because the impact of this number of observations will be reduced from each side of the distribution
-            trim = min(.49,max(outliers1/len(group1),outliers2/len(group2)))
+            trim = round(min(.49,max(outliers1/len(group1),outliers2/len(group2))),6)
 
             # print(min(_group1[(_group1 != 0) & (~pd.isna(_group1))][_is_outlier(_group1[(_group1 != 0) & (~pd.isna(_group1))])]))        
             # print(min(_group2[(_group2 != 0) & (~pd.isna(_group2))][_is_outlier(_group2[(_group2 != 0) & (~pd.isna(_group2))])]))        
@@ -126,10 +126,10 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         # print(var_test[1])
         # if p val is not significant at 10% level, assume variances are equal
         if var_test[1] >= .1:
-            result = ttest_ind(group1,group2,equal_var=True,trim=round(trim,3))
+            result = ttest_ind(group1,group2,equal_var=True,trim=trim)
         # otherwise, can assume they are unequal
         elif var_test[1] < .1:
-            result = ttest_ind(group1,group2,equal_var=False,trim=round(trim,3))
+            result = ttest_ind(group1,group2,equal_var=False,trim=trim)
 
     elif test_type == 'rel':
             # there should be no NAs in this data
@@ -313,7 +313,7 @@ if plan_eval == 'Evaluate a test':
                 _0s_in_data = st.sidebar.selectbox('Data for every session?',['Select one','Yes','No'])
 
                 if _0s_in_data != 'Select one':
-                    
+
                     if _0s_in_data == 'Yes':
                         st.write(acks[0][5] + ''' Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit.
                         If your data is at the transaction level, your evaluation metric will be revenue per session. If it is grouped to the constituent
