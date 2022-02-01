@@ -1,14 +1,19 @@
+from multiprocessing import allow_connection_pickling
 import pandas as pd
 import numpy as np
 from scipy.stats import norm, ttest_ind, ttest_rel, levene
-import streamlit as st## Finding day of year
+import streamlit as st
 from datetime import datetime
+import base64
 
 # session_seed = 1
 
 # ---------------------
 #   HELPER FUNCTIONS
 # ---------------------
+
+# def form_callback():
+#     st.session_state.myform = True
 
 # acknowledgers
 # ---------------
@@ -29,6 +34,19 @@ def generate_acks(m,n,seed):
 
 day_of_year = datetime.now().timetuple().tm_yday
 acks = generate_acks(10,10,day_of_year)
+
+# display PDFs
+# --------------
+def displayPDF(file):
+    # Opening file from file path
+    with open(file, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+    # Embedding PDF in HTML
+    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+
+    # Displaying File
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 
 # detect outliers function
@@ -206,7 +224,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
 
 #-----------------------------------------------------
 #-----------------------------------------------------
-
+# st.write(pd.read_csv('test.csv'))
 
 st.title('Statistical Significance Workbook')
 # st.header('Brought to you by the Decision Science team')
@@ -228,14 +246,16 @@ if plan_eval == 'Evaluate a test':
 
     if means_rates == 'Difference in rates':
         st.write(acks[0][1] + ''' We'll conduct a [pooled two-proportion z-test] (https://en.wikipedia.org/wiki/Test_statistic#Common_test_statistics). 
-        Input the number of actions taken by each group, and the number of opportunities each had to take this action. 
-        For example, for email CTR, this would be clicks and emails received, respectively.''')
+        Input the number of positive and total outcomes in each group. 
+        For example, for email CTR, this would be clicks and emails received, respectively. Note that the two groups
+        must be independent of one another.
+        ''')
         with st.form('submit_rate_inputs'):
             col1, col2 = st.columns(2)
-            acts1 = col1.number_input('Actions taken by Group 1',0)
-            acts2 = col2.number_input('Actions taken by Group 2',0)
-            n1 = col1.number_input('Opportunities for Group 1',1)
-            n2 = col2.number_input('Opportunities for Group 2',1)
+            acts1 = col1.number_input('Positive outcomes for Group 1',0)
+            acts2 = col2.number_input('Positive outcomes for Group 2',0)
+            n1 = col1.number_input('Total outcomes for Group 1',1)
+            n2 = col2.number_input('Total outcomes for Group 2',1)
 
             rates_submit = st.form_submit_button()
             if rates_submit:
@@ -310,7 +330,7 @@ if plan_eval == 'Evaluate a test':
             
             elif rev_per_sess == 'Yes':
                 st.write(acks[0][4] + ''' Does your data have 0's to represent recipients or visitors without a transaction?''')
-                _0s_in_data = st.sidebar.selectbox('Data for every session?',['Select one','Yes','No'])
+                _0s_in_data = st.sidebar.selectbox('Data for every session or visitor?',['Select one','Yes','No'])
 
                 if _0s_in_data != 'Select one':
 
@@ -356,6 +376,63 @@ if plan_eval == 'Evaluate a test':
                             df = pd.read_csv(upload)
                             custom_ttest(df.Group1,df.Group2,'ind',rev_per_sess,_0s_in_data,n1=total_obs1,n2=total_obs2)
                         
+                    # if means1submit:
+                    
+                    st.write('''If you'd like to learn more about t-tests or p-values, click below:''')
+                    
+                    col6, col7 = st.columns(2)
+                    pval_info = col7.button('Learn more about p-values')
+                    ttest_info = col6.button('Learn more about t-tests')
+
+                    if ttest_info:
+                        st.markdown('''
+                        A two-sample __t-test__ is a hypothesis test that allows you to determine how likely it is
+                        that two sets of observations were drawn from the same distribution. As with all hypothesis tests,
+                        it presents 
+                        ''')
+
+                    if pval_info:
+                        # displayPDF('P-values.pdf')
+                        # st.markdown('''
+                        # A __p-value__ is a number between 0 and 1 that is output by many tests of significance, such as t-tests. 
+                        # It helps you determine whether or not to reject the null hypothesis, which in the case of a t-test states that
+                        # both groups are drawn from the same distribution. In other words, this means tells you how likely it is that the difference you observed is due to _random chance_.  
+                        
+                        # ''')
+                        st.markdown('''
+                        <!-- Button to Open the Modal -->
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+                        Open modal
+                        </button>
+
+                        <!-- The Modal -->
+                        <div class="modal" id="myModal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header">
+                                <h4 class="modal-title">Modal Heading</h4>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body">
+                                Modal body..
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                            </div>
+
+                            </div>
+                        </div>
+                        </div>
+                        ''',unsafe_allow_html=True
+                        )
+                        
+
         elif ind == 'No':
             st.write(acks[0][6] + ''' We'll conduct a [paired samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Paired_samples).
             Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit. 
