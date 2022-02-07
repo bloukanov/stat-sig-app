@@ -392,8 +392,8 @@ if plan_eval == 'Evaluate a test':
                     produced by the test is low enough, we may reject the null hypothesis and 
                     conclude that there is a real difference between the two groups. 
                     
-                    Be sure to pay attention to which mean is 
-                    greater -- the test is only concerned with the absolute difference between the two groups, not the directionality.
+                    __Be sure to pay attention to which mean is 
+                    greater__ -- the test is only concerned with the absolute difference between the two groups, not the directionality.
                     ''') 
                     pval_info = st.expander('Learn more about p-values')
                     pval_info.markdown('''
