@@ -170,7 +170,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         st.write('''Significant outliers were detected in your data, so we've run a [trimmed t-test] (https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test).
         This compares the "trimmed means," i.e. the means after removing the outliers, but still includes the outliers for the variance
         calculation. The overall effect is to reduce the impact of the outliers on the significance test.''')
-    st.markdown('Mean 1: **{:.2f}**. Mean 2: **{:.2f}**. Mean difference: **{:.2f}**'.format(mean1,mean2,mean1-mean2))
+    st.markdown('Mean 1: **{:.4f}**. Mean 2: **{:.4f}**. Mean difference: **{:.4f}**'.format(mean1,mean2,mean1-mean2))
     if trimmed:
         # trimmed means are just the means after removing trimmed values
         sort1  = group1.sort_values()
@@ -194,7 +194,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             trimmed_vals2.index = np.arange(1,len(trimmed_vals2) + 1)
 
         
-        st.markdown('Trimmed mean 1: **{:.2f}**. Trimmed mean 2: **{:.2f}**. Trimmed mean difference: **{:.2f}**'.format(tmean1,tmean2,tmean1-tmean2))
+        st.markdown('Trimmed mean 1: **{:.4f}**. Trimmed mean 2: **{:.4f}**. Trimmed mean difference: **{:.4f}**'.format(tmean1,tmean2,tmean1-tmean2))
     
     st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
     if round(pval,3) <= .010:
@@ -380,57 +380,49 @@ if plan_eval == 'Evaluate a test':
                     
                     st.write('''If you'd like to learn more about t-tests or p-values, click below:''')
                     
-                    col6, col7 = st.columns(2)
-                    pval_info = col7.button('Learn more about p-values')
-                    ttest_info = col6.button('Learn more about t-tests')
-
-                    if ttest_info:
-                        st.markdown('''
-                        A two-sample __t-test__ is a hypothesis test that allows you to determine how likely it is
-                        that two sets of observations were drawn from the same distribution. As with all hypothesis tests,
-                        it presents 
-                        ''')
-
-                    if pval_info:
-                        # displayPDF('P-values.pdf')
-                        # st.markdown('''
-                        # A __p-value__ is a number between 0 and 1 that is output by many tests of significance, such as t-tests. 
-                        # It helps you determine whether or not to reject the null hypothesis, which in the case of a t-test states that
-                        # both groups are drawn from the same distribution. In other words, this means tells you how likely it is that the difference you observed is due to _random chance_.  
-                        
-                        # ''')
-                        st.markdown('''
-                        <!-- Button to Open the Modal -->
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
-                        Open modal
-                        </button>
-
-                        <!-- The Modal -->
-                        <div class="modal" id="myModal">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-
-                            <!-- Modal Header -->
-                            <div class="modal-header">
-                                <h4 class="modal-title">Modal Heading</h4>
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            </div>
-
-                            <!-- Modal body -->
-                            <div class="modal-body">
-                                Modal body..
-                            </div>
-
-                            <!-- Modal footer -->
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                            </div>
-
-                            </div>
-                        </div>
-                        </div>
-                        ''',unsafe_allow_html=True
-                        )
+                    # col6, col7 = st.columns([1,2])
+                    # pval_info = col7.button('Learn more about p-values')
+                    ttest_info = st.expander('Learn more about t-tests')
+                    ttest_info.markdown('''
+                    A two-sample __t-test__ is a statistical hypothesis test that helps determine whether there is any real 
+                    difference between two sets of data, by comparing their means (averages) and variances.
+                    As with any hypothesis test, it proposes a _null hypothesis_ and an _alternative hypothesis_. The null 
+                    hypothesis states that the two sets of observations were 
+                    drawn from the same distribution, i.e. that there is no real difference between them. If the _p-value_ 
+                    produced by the test is low enough, we may reject the null hypothesis and 
+                    conclude that there is a real difference between the two groups. 
+                    
+                    Be sure to pay attention to which mean is 
+                    greater -- the test is only concerned with the absolute difference between the two groups, not the directionality.
+                    ''') 
+                    pval_info = st.expander('Learn more about p-values')
+                    pval_info.markdown('''
+                    ###### Overview
+                    A __p-value__ [(Wikipedia)] (https://en.wikipedia.org/wiki/P-value) is a number between 0 and 1 that is output by statistical 
+                    hypothesis tests such as t-tests. 
+                    In the case of two-sample t-tests, it represents the probability that the difference in means (averages) observed between
+                    two sets of data is due to _random chance_. The larger the difference, and the less variablity there is in the data,
+                    the lower the p-value and the more certain we can be that there is a real difference between the two sets.
+                    Technically speaking, when the p-value is low enough, we may reject the _null hypothesis_, which states that the 
+                    two sets of data are drawn from the same distribution.
+                    ###### Thresholds
+                    There are various rules of thumb for p-value thresholds. You may notice that in this app, we specifically call out
+                    thresholds of .1, .05, and .01 -- these are three very common ones. If  our p-value is less than .01 for example, we may say
+                    that we have _99% certainty_ that there is a difference between the two sets of data. Usually, when there is less data
+                    we may allow a higher threshold, because smaller sample sizes have more variability. Therefore it is less likely
+                    that we will observe a difference even if it exists. (Consider drawing red and blue marbles from a jar, and trying to determine
+                    whether the split of red and blue marbles is 50-50. Let's say that after 4 draws, 
+                    you hold 3 blue marbles and 1 red. Are you ready to reject the hypothesis? How about if after 400 draws you hold 300 blue and 100 red? 
+                    We become more confident after more draws, because of the [law of large numbers] (https://en.wikipedia.org/wiki/Law_of_large_numbers).) 
+                    Thus, for data with fewer than 100 observations, a .1 threshold may be sufficient to reject the null hypothesis, whereas for 
+                    data with more than 1000, a threshold of .01 would likely be needed.
+                    ###### A Word of Caution
+                    It is important to interpret the p-value yourself based on your use case, and not just rely on comparison against a threshold.
+                    For example, if you have 95 observations and your p-value comes out to .11, wouldn't you agree that there is _some_ significance there?
+                    Statistics deals with _probabilities_, so looking to it for black and white answers, while tempting, can also be dangerous because
+                    it oversimplifies the reality. Always use your best judgment, and feel free to reach out to the Decision Science team with questions 
+                    about how to interpret your results! We are always happy to discuss :).
+                    ''')                       
                         
 
         elif ind == 'No':
