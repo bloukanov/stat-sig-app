@@ -69,7 +69,7 @@ def is_outlier(points, thresh=3.5):
 
     References:
     ----------
-        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Boris Iglewicz and David Hoaglin (1993), pp. 11-12, "Volume 16: How to Detect and
         Handle Outliers", The ASQC Basic References in Quality Control:
         Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
     """
@@ -134,10 +134,10 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
 
         else:
             trim = 0
-        print(outliers1)
-        print(outliers2)
+        # print(outliers1)
+        # print(outliers2)
 
-        print(trim)
+        # print(trim)
 
         # check for equality of variance. levene seems to not be sensitive to assumptions of normality.
         var_test = levene(group1,group2)
@@ -218,6 +218,47 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         col5, col6 = st.columns(2)
         col5.write(trimmed_vals1.rename('Group 1 trimmed values'))
         col6.write(trimmed_vals2.rename('Group 2 trimmed values'))
+        st.write('''
+        We've also conducted a [Mann-Whitney U test] (https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test), a nonparametric
+        statistical test that is robust in the presence of outliers. It is sometimes interpreted as a comparison of medians, as opposed
+        to means.
+        ''')
+        # calculate Mann-Whitney statistic and p-value. the statistic represents the number of pairwise comparisons between the two groups
+        # the first group wins. the total number of pairwise comparisons is n1*n2. the pval is the chance that the two groups are drawn from the
+        # distribution
+        from  scipy.stats import mannwhitneyu
+        u1, mw_pval = mannwhitneyu(group1,group2)
+        n1 = len(group1)
+        n2 = len(group2)
+        # calculate the 'common language effect size', i.e. the proportion of pairwise comparisons won by the winning group
+        u2 = n1*n2 - u1
+        cles = max(u1/(n1*n2),u2/(n1*n2))
+        # TODO: FORMAT THESE VALUES
+        if u1 > u2:
+            st.markdown(f'''
+            __Items from Group 1 appear to be larger than items from Group 2__. Out of {n1*n2} pairwise comparisons between items of the two groups,
+            Group 1 won {u1} ({u1/(u1+u2)}) and Group 2 won {u2} ({u2/(u1+u2)}). Group 1 won {u1-u2} more.
+            ''')
+        elif u2 > u1:
+            st.markdown(f'''
+            __Items from Group 2 appear to be larger than items from Group 1__. Out of {n1*n2} pairwise comparisons between items of the two groups,
+            Group 2 won {u2} ({u2/(u1+u2)}) and Group 1 won {u1} ({u1/(u1+u2)}). Group 2 won {u2-u1} more.
+            ''')
+
+        st.markdown('**P-Value: '+'{:.3f}**'.format(mw_pval))
+        if round(mw_pval,3) <= .010:
+            st.success('This difference is significant at the 1% level.')
+        elif round(mw_pval,3) <= .050:
+            st.success('This difference is significant at the 5% level.')
+        elif round(mw_pval,3) <= .100:
+            st.success('This difference is significant at the 10% level.')
+        elif np.isnan(mw_pval):
+            # TODO: FIND MINIMUM SAMPLE SIZE
+            st.error('''Your test result couldn't be calculated. Make sure you have at least 2
+            observations in each group!
+            ''')
+        else:
+            st.warning('This difference would not typically be considered statistically significant.')
 
 
 
@@ -263,6 +304,7 @@ if plan_eval == 'Evaluate a test':
                 rate1 = acts1/n1
                 rate2 = acts2/n2
                 pval = 2*norm.cdf(-1*abs((rate1-rate2)/np.sqrt(p*(1-p)*(1/n1+1/n2))))
+                # print(pval)
                 st.markdown('Rate 1: **{:.4f}**. Rate 2: **{:.4f}**. Rate difference: **{:.4f}**'.format(rate1,rate2,rate1-rate2))
                 st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
                 # if sample size assumptions are met
@@ -393,7 +435,8 @@ if plan_eval == 'Evaluate a test':
                     conclude that there is a real difference between the two groups. 
                     
                     __Be sure to pay attention to which mean is 
-                    greater__ -- the test is only concerned with the absolute difference between the two groups, not the directionality.
+                    greater__ -- the test is only concerned with the absolute difference between the two groups, not the
+                    direction of the difference.
                     ''') 
                     pval_info = st.expander('Learn more about p-values')
                     pval_info.markdown('''
