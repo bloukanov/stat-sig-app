@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import datetime
-from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns
+from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns, displayPDF
 from scipy.stats import norm
 
 # session_seed = 1
@@ -212,5 +212,22 @@ elif plan_eval == 'Plan a test':
         can do that for you under 'Evaluate a test'). However, because RPV incorporates variance
         both from CR _and_ from AG, it requires the largest sample size to get a proper read.
         ''')
+        st.markdown('''
+        This [blog post] (https://vwo.com/blog/important-ecommerce-metrics/) does a good job of
+        explaining the relationships between these metrics as well (average order value is the ecommerce equivalent of average gift).
+        ''')
+        st.markdown('''
+        If you'd like to dive even deeper into web testing best practices and considerations, _Controlled Experiments on the web: 
+        survey and practical guide_ by Ron Kohavi et. al. is a great resource.
+        ''')
+        with open("Kohavi.pdf", "rb") as file:
+            btn = st.download_button(
+            label="Download paper",
+            data=file,
+            file_name="Kohavi.pdf",
+            mime="application/pdf"
+           )
+        
+
     elif metric_ready == 'Yes':
         st.write('Under construction!')

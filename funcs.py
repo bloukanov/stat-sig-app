@@ -238,7 +238,6 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         # calculate the 'common language effect size', i.e. the proportion of pairwise comparisons won by the winning group
         u2 = n1*n2 - u1
         cles = max(u1/(n1*n2),u2/(n1*n2))
-        # TODO: FORMAT THESE VALUES
         if u1 > u2:
             st.markdown('Items from Group 1 appear to be larger than items from Group 2. ')
             st.markdown(f'''
