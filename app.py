@@ -193,6 +193,7 @@ elif plan_eval == 'Plan a test':
         st.write(acks[1][2] + '''
         There are several things to consider when choosing the primary metric for your test. 
         ''')
+        st.subheader('Metrics')
         st.markdown('''
         A rate metric, such as **Conversion Rate (CR)**, will require the smallest sample size 
         and therefore the least test runtime to produce a satisfactory result. 
@@ -212,9 +213,10 @@ elif plan_eval == 'Plan a test':
         can do that for you under 'Evaluate a test'). However, because RPV incorporates variance
         both from CR _and_ from AG, it requires the largest sample size to get a proper read.
         ''')
+        st.subheader('Further Reading')
         st.markdown('''
         This [blog post] (https://vwo.com/blog/important-ecommerce-metrics/) does a good job of
-        explaining the relationships between these metrics as well (average order value is the ecommerce equivalent of average gift).
+        explaining the relationships between the above metrics as well (average order value is the ecommerce equivalent of average gift).
         ''')
         st.markdown('''
         If you'd like to dive even deeper into web testing best practices and considerations, _Controlled Experiments on the web: 
