@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import datetime
-from funcs import generate_acks, custom_ttest
+from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns
 from scipy.stats import norm
 
 # session_seed = 1
@@ -117,7 +117,7 @@ if plan_eval == 'Evaluate a test':
                     if means0submit:
                         df = pd.read_csv(upload)
                         custom_ttest(df.Group1,df.Group2,'ind',rev_per_sess,_0s_in_data,n1=total_obs1,n2=total_obs2)
-                
+                ttest_pval_dropdowns()
             
             elif rev_per_sess == 'Yes':
                 st.write(acks[0][4] + ''' Does your data have 0's to represent recipients or visitors without a transaction?''')
@@ -166,56 +166,8 @@ if plan_eval == 'Evaluate a test':
                         if means1submit:
                             df = pd.read_csv(upload)
                             custom_ttest(df.Group1,df.Group2,'ind',rev_per_sess,_0s_in_data,n1=total_obs1,n2=total_obs2)
-                        
-                    # if means1submit:
-                    
-                    st.write('''If you'd like to learn more about t-tests or p-values, click below:''')
-                    
-                    # col6, col7 = st.columns([1,2])
-                    # pval_info = col7.button('Learn more about p-values')
-                    ttest_info = st.expander('Learn more about t-tests')
-                    ttest_info.markdown('''
-                    A two-sample __t-test__ is a statistical hypothesis test that helps determine whether there is any real 
-                    difference between two sets of data, by comparing their means (averages) and variances.
-                    As with any hypothesis test, it proposes a _null hypothesis_ and an _alternative hypothesis_. The null 
-                    hypothesis states that the two sets of observations were 
-                    drawn from the same distribution, i.e. that there is no real difference between them. If the _p-value_ 
-                    produced by the test is low enough, we may reject the null hypothesis and 
-                    conclude that there is a real difference between the two groups. 
-                    
-                    __Be sure to pay attention to which mean is 
-                    greater__ -- the test is only concerned with the absolute difference between the two groups, not the
-                    direction of the difference.
-                    ''') 
-                    pval_info = st.expander('Learn more about p-values')
-                    pval_info.markdown('''
-                    ###### Overview
-                    A __p-value__ [(Wikipedia)] (https://en.wikipedia.org/wiki/P-value) is a number between 0 and 1 that is output by statistical 
-                    hypothesis tests such as t-tests. 
-                    In the case of two-sample t-tests, it represents the probability that the difference in means (averages) observed between
-                    two sets of data is due to _random chance_. The larger the difference, and the less variablity there is in the data,
-                    the lower the p-value and the more certain we can be that there is a real difference between the two sets.
-                    Technically speaking, when the p-value is low enough, we may reject the _null hypothesis_, which states that the 
-                    two sets of data are drawn from the same distribution.
-                    ###### Thresholds
-                    There are various rules of thumb for p-value thresholds. You may notice that in this app, we specifically call out
-                    thresholds of .1, .05, and .01 -- these are three very common ones. If  our p-value is less than .01 for example, we may say
-                    that we have _99% certainty_ that there is a difference between the two sets of data. Usually, when there is less data
-                    we may allow a higher threshold, because smaller sample sizes have more variability. Therefore it is less likely
-                    that we will observe a difference even if it exists. (Consider drawing red and blue marbles from a jar, and trying to determine
-                    whether the split of red and blue marbles is 50-50. Let's say that after 4 draws, 
-                    you hold 3 blue marbles and 1 red. Are you ready to reject the hypothesis? How about if after 400 draws you hold 300 blue and 100 red? 
-                    We become more confident after more draws, because of the [law of large numbers] (https://en.wikipedia.org/wiki/Law_of_large_numbers).) 
-                    Thus, for data with fewer than 100 observations, a .1 threshold may be sufficient to reject the null hypothesis, whereas for 
-                    data with more than 1000, a threshold of .01 would likely be needed.
-                    ###### A Word of Caution
-                    It is important to interpret the p-value yourself based on your use case, and not just rely on comparison against a threshold.
-                    For example, if you have 95 observations and your p-value comes out to .11, wouldn't you agree that there is _some_ significance there?
-                    Statistics deals with _probabilities_, so looking to it for black and white answers, while tempting, can also be dangerous because
-                    it oversimplifies the reality. Always use your best judgment, and feel free to reach out to the Decision Science team with questions 
-                    about how to interpret your results! We are always happy to discuss :).
-                    ''')                       
-                        
+
+                    ttest_pval_dropdowns()                    
 
         elif ind == 'No':
             st.write(acks[0][6] + ''' We'll conduct a [paired samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Paired_samples).
@@ -228,6 +180,8 @@ if plan_eval == 'Evaluate a test':
                 if means2submit:
                     df = pd.read_csv(upload)
                     custom_ttest(df.Group1,df.Group2,'rel')
+            
+            ttest_pval_dropdowns()
 
 elif plan_eval == 'Plan a test':
     # st.write('Under construction!')
@@ -247,7 +201,7 @@ elif plan_eval == 'Plan a test':
         a metric such as **Average Gift (AG)**. This can be misleading, though, so be careful.
         Imagine you have two groups of the same size; Group 1 gave 1,000 $99 gifts, and Group 2 
         gave just 1 $100 gift. A comparison of AG would show that Group 2 performed better, but 
-        it also produced far less revenue because the CR was far lower. 
+        it also produced far less revenue because the CR was much lower. 
         ''')
         st.markdown('''
         That's why sometimes you'll want to evaluate total **Revenue per Visitor (RPV)**. 
@@ -256,7 +210,7 @@ elif plan_eval == 'Plan a test':
         and then what was their average gift amount. The way to run a significance test on RPV
         is to add all the visitors to the site who did not give as 0's to the transactions data (I
         can do that for you under 'Evaluate a test'). However, because RPV incorporates variance
-        both from CR _and_ from AG, it requires the largest sample size.
+        both from CR _and_ from AG, it requires the largest sample size to get a proper read.
         ''')
     elif metric_ready == 'Yes':
         st.write('Under construction!')

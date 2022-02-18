@@ -1,5 +1,7 @@
 pandas
 numpy
-scipy >= 1.7.0
-streamlit
+scipy >= 1.7.0 # trim becomes available here in ttest_ind
+# streamlit == 0.86.0
+# streamlit
+streamlit == 1.0
 datetime

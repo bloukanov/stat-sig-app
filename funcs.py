@@ -158,7 +158,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
     # if Yuen's trimmed t-test is conducted, let the user know 
     ntrim1 = int(np.floor(trim*len(group1))) # from scipy ttest_ind documentation
     ntrim2 = int(np.floor(trim*len(group2)))
-    print(ntrim1)
+    # print(ntrim1)
     trimmed = ntrim1 > 0 or ntrim2 > 0
     if trimmed:
         st.markdown('''
@@ -231,6 +231,8 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         # distribution
         from  scipy.stats import mannwhitneyu
         u1, mw_pval = mannwhitneyu(group1,group2)
+        # print(u1)
+        # print(mw_pval)
         n1 = len(group1)
         n2 = len(group2)
         # calculate the 'common language effect size', i.e. the proportion of pairwise comparisons won by the winning group
@@ -248,7 +250,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             st.markdown('Items from Group 2 appear to be larger than items from Group 1.')
             st.markdown(f'''
             __Out of {format(int(n1*n2),',d')} pairwise comparisons__ 
-            between items of the two groups, __Group 2 won {format(int(u2,',d'))} ({format(u2/(u1+u2),'.1%')})__ and __Group 1 won 
+            between items of the two groups, __Group 2 won {format(int(u2),',d')} ({format(u2/(u1+u2),'.1%')})__ and __Group 1 won 
             {format(int(u1),',d')} ({format(u1/(u1+u2),'.1%')})__. Group 2 won {format(int(u2-u1),',d')} more.
             ''')
 
@@ -266,3 +268,51 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             ''')
         else:
             st.warning('This difference would not typically be considered statistically significant.')
+
+def ttest_pval_dropdowns():
+    st.write('''If you'd like to learn more about t-tests or p-values, click below:''')
+    # col6, col7 = st.columns([1,2])
+    # pval_info = col7.button('Learn more about p-values')
+    ttest_info = st.expander('Learn more about t-tests')
+    ttest_info.markdown('''
+    A two-sample __t-test__ is a statistical hypothesis test that helps determine whether there is any real 
+    difference between two sets of data, by comparing their means (averages) and variances.
+    As with any hypothesis test, it proposes a _null hypothesis_ and an _alternative hypothesis_. The null 
+    hypothesis states that the two sets of observations were 
+    drawn from the same distribution, i.e. that there is no real difference between them. If the _p-value_ 
+    produced by the test is low enough, we may reject the null hypothesis and 
+    conclude that there is a real difference between the two groups. 
+    
+    __Be sure to pay attention to which mean is 
+    greater__ -- the test is only concerned with the absolute difference between the two groups, not the
+    direction of the difference.
+    ''') 
+    pval_info = st.expander('Learn more about p-values')
+    pval_info.markdown('''
+    ###### Overview
+    A __p-value__ [(Wikipedia)] (https://en.wikipedia.org/wiki/P-value) is a number between 0 and 1 that is output by statistical 
+    hypothesis tests such as t-tests. 
+    In the case of two-sample t-tests, it represents the probability that the difference in means (averages) observed between
+    two sets of data is due to _random chance_. The larger the difference, and the less variablity there is in the data,
+    the lower the p-value and the more certain we can be that there is a real difference between the two sets.
+    Technically speaking, when the p-value is low enough, we may reject the _null hypothesis_, which states that the 
+    two sets of data are drawn from the same distribution.
+    ###### Thresholds
+    There are various rules of thumb for p-value thresholds. You may notice that in this app, we specifically call out
+    thresholds of .1, .05, and .01 -- these are three very common ones. If  our p-value is less than .01 for example, we may say
+    that we have _99% certainty_ that there is a difference between the two sets of data. Usually, when there is less data
+    we may allow a higher threshold, because smaller sample sizes have more variability. Therefore it is less likely
+    that we will observe a difference even if it exists. (Consider drawing red and blue marbles from a jar, and trying to determine
+    whether the split of red and blue marbles is 50-50. Let's say that after 4 draws, 
+    you hold 3 blue marbles and 1 red. Are you ready to reject the hypothesis? How about if after 400 draws you hold 300 blue and 100 red? 
+    We become more confident after more draws, because of the [law of large numbers] (https://en.wikipedia.org/wiki/Law_of_large_numbers).) 
+    Accordingly, for data with fewer than 100 observations, a .1 threshold may be sufficient to reject the null hypothesis, whereas for 
+    data with more than 1000, a threshold of .01 would likely be needed.
+    ###### A Word of Caution
+    It is important to interpret the p-value yourself based on your use case, and not just rely on comparison against a threshold.
+    For example, if you have 95 observations and your p-value comes out to .11, wouldn't you agree that there is _some_ significance there?
+    Statistics deals with _probabilities_, so looking to it for black and white answers, while tempting, can also be dangerous because
+    it oversimplifies the reality. Always use your best judgment, and feel free to reach out to the Decision Science team with questions 
+    about how to interpret your results! We are always happy to help :).
+    ''')                       
+
