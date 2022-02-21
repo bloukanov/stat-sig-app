@@ -232,7 +232,7 @@ elif plan_eval == 'Plan a test':
         
 
     elif metric_ready == 'Yes':
-        st.write(acks[0][8] + ' Is it a rate or mean metric?')
+        st.write(acks[0][9] + ' Is it a rate or mean metric?')
         means_rates2 =  st.sidebar.selectbox('Rate or Mean Metric?',['Select one','Rate','Mean'])
         if means_rates2 == 'Rate':
             st.write(acks[0][9] + ' Please enter the expected conversion rate and click Submit.')
