@@ -235,7 +235,7 @@ elif plan_eval == 'Plan a test':
         st.write(acks[0][9] + ' Is it a rate or mean metric?')
         means_rates2 =  st.sidebar.selectbox('Rate or Mean Metric?',['Select one','Rate','Mean'])
         if means_rates2 == 'Rate':
-            st.write(acks[0][10] + ' Please enter the expected conversion rate and click Submit.')
+            st.write(acks[0][10] + ' Please enter the expected rate and click Submit.')
             with st.form('rates input sample size'):
                 col7, col= st.columns([1,2])
                 exp_rate = col7.number_input('Expected rate',0.0,1.0,step=.01,)

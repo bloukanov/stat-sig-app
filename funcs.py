@@ -324,5 +324,8 @@ def sample_size_calc_rates(p):
         n = 16*(p)*(1-p)/(p*d)**2
         sample_sizes.append(format(int(math.ceil(n)),',d'))
 
-    st.write('Below are recommended sample sizes to achieve 80% power:')
+    st.write('''Below are recommended sample sizes to achieve 80% power, for various percents change
+    of the evaluation metric:
+    
+    ''')
     st.dataframe(pd.DataFrame({'Pct Change':pct_changes, 'Sample Size Required':sample_sizes}),height=500)
