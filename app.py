@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import datetime
-from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns, displayPDF
+from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns, sample_size_calc_rates
 from scipy.stats import norm
 
 # session_seed = 1
 
 day_of_year = datetime.now().timetuple().tm_yday
-acks = generate_acks(10,10,day_of_year)
+acks = generate_acks(20,10,day_of_year)
 
 
 #-----------------------------------------------------
@@ -170,7 +170,7 @@ if plan_eval == 'Evaluate a test':
                     ttest_pval_dropdowns()                    
 
         elif ind == 'No':
-            st.write(acks[0][6] + ''' We'll conduct a [paired samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Paired_samples).
+            st.write(acks[0][7] + ''' We'll conduct a [paired samples t-test] (https://en.wikipedia.org/wiki/Student%27s_t-test#Paired_samples).
             Upload a csv with your data in columns named 'Group1' and 'Group2,' and click Submit. 
             Note that both groups must have the same number of observations.
             ''')
@@ -185,7 +185,7 @@ if plan_eval == 'Evaluate a test':
 
 elif plan_eval == 'Plan a test':
     # st.write('Under construction!')
-    st.write(acks[0][7] + '''
+    st.write(acks[0][8] + '''
     Have you decided on a test metric yet?
     ''')
     metric_ready = st.sidebar.selectbox('Metric ready?',['Select one','Yes','No'])
@@ -206,7 +206,7 @@ elif plan_eval == 'Plan a test':
         ''')
         st.markdown('''
         That's why sometimes you'll want to evaluate total **Revenue per Visitor (RPV)**. 
-        This takes into account both the CR differennces between the groups, and the differences 
+        This takes into account both the CR differences between the groups, and the differences 
         in AG. RPV = CR * AG. In other words, it first asks how many visitors actually gave a gift, 
         and then what was their average gift amount. The way to run a significance test on RPV
         is to add all the visitors to the site who did not give as 0's to the transactions data (I
@@ -232,4 +232,15 @@ elif plan_eval == 'Plan a test':
         
 
     elif metric_ready == 'Yes':
-        st.write('Under construction!')
+        st.write(acks[0][8] + ' Is it a rate or mean metric?')
+        means_rates2 =  st.sidebar.selectbox('Rate or Mean Metric?',['Select one','Rate','Mean'])
+        if means_rates2 == 'Rate':
+            st.write(acks[0][9] + ' Please enter the expected conversion rate and click Submit.')
+            with st.form('rates input sample size'):
+                col7, col= st.columns([1,2])
+                exp_rate = col7.number_input('Expected rate',0.0,1.0,step=.01,)
+                rates_sample_submit = st.form_submit_button()
+                if rates_sample_submit:
+                    sample_size_calc_rates(exp_rate)
+        elif means_rates2 == 'Mean':
+            st.write('Under construction... Check back soon!')

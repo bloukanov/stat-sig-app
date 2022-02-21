@@ -3,6 +3,7 @@ import numpy as np
 import streamlit as st
 import base64
 from scipy.stats import ttest_rel, ttest_ind, levene
+import math
 
 # ---------------------
 #   HELPER FUNCTIONS
@@ -315,3 +316,13 @@ def ttest_pval_dropdowns():
     about how to interpret your results! We are always happy to help :).
     ''')                       
 
+def sample_size_calc_rates(p):
+    pct_changes = list(range(5,55,5))
+    sample_sizes = []
+    for pct in pct_changes:
+        d = pct/100
+        n = 16*(p)*(1-p)/(p*d)**2
+        sample_sizes.append(format(int(math.ceil(n)),',d'))
+
+    st.write('Below are recommended sample sizes to achieve 80% power:')
+    st.dataframe(pd.DataFrame({'Pct Change':pct_changes, 'Sample Size Required':sample_sizes}),height=500)
