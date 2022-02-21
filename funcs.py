@@ -320,8 +320,8 @@ def sample_size_calc_rates(p):
     pct_changes = list(range(5,55,5))
     sample_sizes = []
     for pct in pct_changes:
-        d = pct/100
-        n = 16*(p)*(1-p)/(p*d)**2
+        d = p*pct/100
+        n = 16*(p)*(1-p)/d**2
         sample_sizes.append(format(int(math.ceil(n)),',d'))
 
     st.write('''Below are recommended sample sizes to achieve 80% power, for various percents change
