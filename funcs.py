@@ -322,13 +322,12 @@ def sample_size_calc_rates(p,s,m):
     times = []
     for pct in pct_changes:
         d = p*pct/100
-        n = 2*16*(p)*(1-p)/d**2
-        # Kohavi, p. 152
-        t = (n/m)*1/((4*s/100)*(1-s/100)) 
+        non_50_factor = 1/((4*s/100)*(1-s/100)) 
         # Kohavi, p. 175. Note that this is NOT the same as letting the smaller variant get to the per-variant sample size.
         # it is less.
-        # re-calculate resulting n based on Kohavi p. 175
-        n = t*m
+        n = non_50_factor * 2*16*(p)*(1-p)/d**2
+        # Kohavi, p. 152
+        t = (n/m)
         sample_sizes.append(format(int(math.ceil(n)),',d'))
         times.append('{:.1f}'.format(t))
 

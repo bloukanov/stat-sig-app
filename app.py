@@ -248,10 +248,10 @@ elif plan_eval == 'Plan a test':
                 if rates_sample_submit:
                     sample_size_calc_rates(exp_rate, test_split, monthly_samples)
         elif means_rates2 == 'Mean':
-            # st.write('Under construction... Check back soon!')
-            st.write(acks[0][11] + ''' You will need to upload a sample of the data you expect from this test. Will you need
-            0's appended for non-conversion events?
-            ''')
-            append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
-            if append_0s == 'Nope, my data is ready to go as is':
-                st.write(acks[0][12] + ''' Please upload your ''')
+            st.write('Under construction... Check back soon!')
+            # st.write(acks[0][11] + ''' You will need to upload a sample of the data you expect from this test. Will you need
+            # 0's appended for non-conversion events?
+            # ''')
+            # append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
+            # if append_0s == 'Nope, my data is ready to go as is':
+            #     st.write(acks[0][12] + ''' Please upload your ''')
