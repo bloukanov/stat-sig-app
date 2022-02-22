@@ -316,16 +316,24 @@ def ttest_pval_dropdowns():
     about how to interpret your results! We are always happy to help :).
     ''')                       
 
-def sample_size_calc_rates(p):
+def sample_size_calc_rates(p,s,m):
     pct_changes = list(range(5,55,5))
     sample_sizes = []
+    times = []
     for pct in pct_changes:
         d = p*pct/100
-        n = 16*(p)*(1-p)/d**2
+        n = 2*16*(p)*(1-p)/d**2
+        # Kohavi, p. 152
+        t = (n/m)*1/((4*s/100)*(1-s/100)) 
+        # Kohavi, p. 175. Note that this is NOT the same as letting the smaller variant get to the per-variant sample size.
+        # it is less.
+        # re-calculate resulting n based on Kohavi p. 175
+        n = t*m
         sample_sizes.append(format(int(math.ceil(n)),',d'))
+        times.append('{:.1f}'.format(t))
 
-    st.write('''Below are recommended sample sizes to achieve 80% power, for various percents change
-    of the evaluation metric:
+    st.markdown('''Below are recommended total samples to achieve 80% power and their resulting runtimes in months, 
+    for various percents change to the evaluation metric:
     
     ''')
-    st.dataframe(pd.DataFrame({'Pct Change':pct_changes, 'Sample Size Required':sample_sizes}),height=500)
+    st.dataframe(pd.DataFrame({'Pct Change':pct_changes, 'Total Samples Required':sample_sizes, 'Test Duration': times}),height=500)

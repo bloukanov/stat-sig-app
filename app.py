@@ -235,12 +235,23 @@ elif plan_eval == 'Plan a test':
         st.write(acks[0][9] + ' Is it a rate or mean metric?')
         means_rates2 =  st.sidebar.selectbox('Rate or Mean Metric?',['Select one','Rate','Mean'])
         if means_rates2 == 'Rate':
-            st.write(acks[0][10] + ' Please enter the expected rate and click Submit.')
+            st.write(acks[0][10] + '''
+            Please enter the expected rate, the Test group split percentage, the approximate number
+            of total samples expected per month, and click Submit.
+            ''')
             with st.form('rates input sample size'):
-                col7, col= st.columns([1,2])
+                col7, col8, col9= st.columns(3)
                 exp_rate = col7.number_input('Expected rate',0.0,1.0,step=.01,)
+                test_split = col8.number_input('Test %',0,100)
+                monthly_samples = col9.number_input('Total monthly samples',min_value=1, step = 1)
                 rates_sample_submit = st.form_submit_button()
                 if rates_sample_submit:
-                    sample_size_calc_rates(exp_rate)
+                    sample_size_calc_rates(exp_rate, test_split, monthly_samples)
         elif means_rates2 == 'Mean':
-            st.write('Under construction... Check back soon!')
+            # st.write('Under construction... Check back soon!')
+            st.write(acks[0][11] + ''' You will need to upload a sample of the data you expect from this test. Will you need
+            0's appended for non-conversion events?
+            ''')
+            append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
+            if append_0s == 'Nope, my data is ready to go as is':
+                st.write(acks[0][12] + ''' Please upload your ''')
