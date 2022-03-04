@@ -230,7 +230,7 @@ elif plan_eval == 'Plan a test':
         ''')
         st.markdown('''
         If you'd like to dive even deeper into web testing best practices and considerations, _Controlled Experiments on the web: 
-        survey and practical guide_ by Ron Kohavi et. al. is a great resource.
+        survey and practical guide_ by Ron Kohavi et. al. is a great resource. The development of this app relied on it heavily.
         ''')
         with open("Kohavi.pdf", "rb") as file:
             btn = st.download_button(
@@ -279,9 +279,9 @@ elif plan_eval == 'Plan a test':
                 if upload:
                     with st.form('plan_mean_dont_add_0s'):
                     
-                        st.write(''' I've filled in the value for the expected OEC based on your data, accounting for outliers if necessary.
-                        Please adjust if you feel this is not accurate, and enter the Test group split percentage and approximate number of monthly samples.
-                        Then click Submit.
+                        st.write(''' I've filled in the expected value of your test metric based on your sample data, accounting for outliers 
+                        if necessary. Please adjust if you feel this is not accurate, and enter the Test group split percentage and approximate number of 
+                        monthly samples. Then click Submit.
                         ''')
                         series = pd.read_csv(upload).iloc[:,0]
                         outliers = is_outlier(series)
@@ -313,7 +313,7 @@ elif plan_eval == 'Plan a test':
                             in_var = np.var(series)
                             in_mean = np.round(series.mean(),1)
                         # print(in_mean)
-                        exp_mean = col10.number_input('Expected OEC',value = in_mean, step=.1, format = '%.1f')
+                        exp_mean = col10.number_input('Expected metric value',value = in_mean, step=.1, format = '%.1f')
                         test_split = col11.number_input('Test %',0,100)
                         monthly_samples = col12.number_input('Total monthly samples',min_value=1, step = 1)
 
