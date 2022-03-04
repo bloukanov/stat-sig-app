@@ -168,6 +168,13 @@ if plan_eval == 'Evaluate a test':
                         means1submit = st.form_submit_button()
                         if means1submit:
                             df = pd.read_csv(upload)
+                            # TODO: CHECK IF TOTALS OBS IF PROVIDED ARE MORE THAN DATA SIZE
+                            if total_obs1: 
+                                if len(df.Group1) >= total_obs1:
+                                    st.error('Please select a total number of samples for Group 1 that is greater than your data size of '+format(sum(~pd.isna(df.Group1)),',d'))
+                            if total_obs2: 
+                                if len(df.Group2) >= total_obs2:
+                                    st.error('Please select a total number of samples for Group 2 that is greater than your data size of '+format(sum(~pd.isna(df.Group2)),',d'))
                             custom_ttest(df.Group1,df.Group2,'ind',rev_per_sess,_0s_in_data,n1=total_obs1,n2=total_obs2)
 
                     ttest_pval_dropdowns()                    
@@ -256,8 +263,15 @@ elif plan_eval == 'Plan a test':
             0's appended for non-conversion events?
             ''')
             append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
-            if append_0s == 'Nope, my data is ready to go as is':
-                st.write(acks[0][12] + ''' Please upload a sample of your data below in a csv with a single named column (the name does not matter). 
+            ack13 = acks[0][12] + ' '
+
+            if append_0s == 'Yes, please':
+                st.write(acks[0][12] + ' What should be the total number of samples in the data?')
+                n_0s_append_mean_plan = st.number_input('Total Samples:',min_value=1)
+                ack13 = ''
+
+            if append_0s != 'Select One':
+                st.write(ack13 + '''Now please upload a sample of your data below in a csv with a single named column (the name does not matter). 
                 Ideally, it should be from around the same time of year and of the same time interval as the test you plan to implement.
                 ''')
                 upload = st.file_uploader('Upload data', type='csv')
@@ -268,19 +282,25 @@ elif plan_eval == 'Plan a test':
                         Please adjust if you feel this is not accurate, and enter the Test group split percentage and approximate number of monthly samples.
                         Then click Submit.
                         ''')
-                        df = pd.read_csv(upload)
-                        col10, col11, col12= st.columns(3)
-                        outliers = is_outlier(df.iloc[:,0])
+                        series = pd.read_csv(upload).iloc[:,0]
+                        if len(series) >= n_0s_append_mean_plan:
+                            st.error('Please select a total number of samples that is greater than your data size of '+format(len(series),',d'))
+                        outliers = is_outlier(series)
                         n_outliers = sum(outliers)
+                        if append_0s == 'Yes, please':
+                            series = series.append(pd.Series(np.repeat(0,n_0s_append_mean_plan-len(series))))
+                        print(len(series))
+                        col10, col11, col12= st.columns(3)
                         # print(sum(outliers))
                         if n_outliers > 0:
                             # data to calculate winsorized variance, which would be used in a trimmed means t-test.
                             # see https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test
-                            outlier_pct = n_outliers/df.shape[0]
-                            data_winsorized = pd.Series(winsorize(df.iloc[:,0],(min(outlier_pct,.5),min(outlier_pct,.5))))
+                            outlier_pct = n_outliers/len(series)
+                            # same as in t-test evaluation, calculate outliers before appending 0s, but adjust values of full data
+                            data_winsorized = pd.Series(winsorize(series,(min(outlier_pct,.5),min(outlier_pct,.5))))
                             in_var = np.var(data_winsorized)
                             # mean will be the trimmed mean as per a trimmed means t test
-                            sorted = df.iloc[:,0].sort_values()
+                            sorted = series.sort_values()
                             tmean = sorted[n_outliers:-n_outliers].mean()
                             in_mean = tmean
                             trimmed_vals = sorted[:n_outliers].append(sorted[-n_outliers:])
@@ -289,8 +309,8 @@ elif plan_eval == 'Plan a test':
                             st.write('These values will be adjusted to accomodate the presence of outliers:')
                             st.write(trimmed_vals)
                         else:
-                            in_var = np.var(df.iloc[:,0])
-                            in_mean = np.round(df.iloc[:,0].mean(),1)
+                            in_var = np.var(series)
+                            in_mean = np.round(series.mean(),1)
                         # print(in_mean)
                         exp_mean = col10.number_input('Expected OEC',value = in_mean, step=.1, format = '%.1f')
                         test_split = col11.number_input('Test %',0,100)
