@@ -264,7 +264,7 @@ elif plan_eval == 'Plan a test':
                 if upload:
                     with st.form('plan_mean_dont_add_0s'):
                     
-                        st.write(acks[0][13] + ''' I've filled in the value for the expected OEC based on your data, accounting for outliers if necessary.
+                        st.write(''' I've filled in the value for the expected OEC based on your data, accounting for outliers if necessary.
                         Please adjust if you feel this is not accurate, and enter the Test group split percentage and approximate number of monthly samples.
                         Then click Submit.
                         ''')
@@ -276,12 +276,14 @@ elif plan_eval == 'Plan a test':
                             # data to calculate winsorized variance, which would be used in a trimmed means t-test.
                             # see https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test
                             outlier_pct = sum(outliers)/df.shape[0]
-                            data_winsorized = pd.Series(winsorize(df.iloc[:,0],(outlier_pct/2,outlier_pct/2)))
+                            data_winsorized = pd.Series(winsorize(df.iloc[:,0],(min(outlier_pct,.5),min(outlier_pct,.5))))
                             in_var = np.var(data_winsorized)
+                            # mean will be the trimmed mean as per a trimmed means t test
+                            tmean = df.iloc[:,0].sort_values()[sum(outliers):-sum(outliers)].mean()
+                            in_mean = tmean
                         else:
                             in_var = np.var(df.iloc[:,0])
-                        # TODO: SHOULD THIS BE THE TRIMMED MEAN IF APPLICABLE?? probably...
-                        in_mean = np.round(df.iloc[:,0][~outliers].mean(),1)
+                            in_mean = np.round(df.iloc[:,0].mean(),1)
                         # print(in_mean)
                         exp_mean = col10.number_input('Expected OEC',value = in_mean, step=.1, format = '%.1f')
                         test_split = col11.number_input('Test %',0,100)
