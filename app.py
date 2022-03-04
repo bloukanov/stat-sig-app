@@ -284,13 +284,13 @@ elif plan_eval == 'Plan a test':
                         Then click Submit.
                         ''')
                         series = pd.read_csv(upload).iloc[:,0]
-                        if len(series) >= n_0s_append_mean_plan:
-                            st.error('Please select a total number of samples that is greater than your data size of '+format(len(series),',d'))
                         outliers = is_outlier(series)
                         n_outliers = sum(outliers)
                         if append_0s == 'Yes, please':
+                            if len(series) >= n_0s_append_mean_plan:
+                                st.error('Please select a total number of samples that is greater than your data size of '+format(len(series),',d'))
                             series = series.append(pd.Series(np.repeat(0,n_0s_append_mean_plan-len(series))))
-                        print(len(series))
+                        # print(len(series))
                         col10, col11, col12= st.columns(3)
                         # print(sum(outliers))
                         if n_outliers > 0:
@@ -307,7 +307,7 @@ elif plan_eval == 'Plan a test':
                             trimmed_vals = sorted[:n_outliers].append(sorted[-n_outliers:])
                             trimmed_vals.rename('Values',inplace=True)
                             trimmed_vals.index = np.arange(1,len(trimmed_vals)+1)
-                            st.write('These values will be adjusted to accomodate the presence of outliers:')
+                            st.write('These values will be adjusted to account for the presence of outliers:')
                             st.write(trimmed_vals)
                         else:
                             in_var = np.var(series)
