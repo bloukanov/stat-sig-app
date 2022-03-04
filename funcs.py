@@ -316,18 +316,18 @@ def ttest_pval_dropdowns():
     about how to interpret your results! We are always happy to help :).
     ''')                       
 
-def sample_size_calc_rates(p,s,m):
+def sample_size_calc(expected,split,var_oec,monthly):
     pct_changes = list(range(5,55,5))
     sample_sizes = []
     times = []
     for pct in pct_changes:
-        d = p*pct/100
-        non_50_factor = 1/((4*s/100)*(1-s/100)) 
+        d = expected*pct/100
+        non_50_factor = 1/((4*split/100)*(1-split/100)) 
         # Kohavi, p. 175. Note that this is NOT the same as letting the smaller variant get to the per-variant sample size.
         # it is less.
-        n = non_50_factor * 2*16*(p)*(1-p)/d**2
+        n = non_50_factor * 2*16*var_oec/d**2
         # Kohavi, p. 152
-        t = (n/m)
+        t = n/monthly
         sample_sizes.append(format(int(math.ceil(n)),',d'))
         times.append('{:.1f}'.format(t))
 

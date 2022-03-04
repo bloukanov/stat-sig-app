@@ -3,8 +3,9 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from datetime import datetime
-from funcs import generate_acks, custom_ttest, ttest_pval_dropdowns, sample_size_calc_rates
+from funcs import generate_acks, custom_ttest, is_outlier, ttest_pval_dropdowns, sample_size_calc, is_outlier
 from scipy.stats import norm
+from scipy.stats.mstats import winsorize
 
 # session_seed = 1
 
@@ -52,7 +53,9 @@ if plan_eval == 'Evaluate a test':
                 p = (acts1+acts2)/(n1+n2)
                 rate1 = acts1/n1
                 rate2 = acts2/n2
-                pval = 2*norm.cdf(-1*abs((rate1-rate2)/np.sqrt(p*(1-p)*(1/n1+1/n2))))
+                z = (rate1-rate2)/np.sqrt(p*(1-p)*(1/n1+1/n2))
+                # print(z)
+                pval = 2*norm.cdf(-1*abs(z))
                 # print(pval)
                 st.markdown('Rate 1: **{:.4f}**. Rate 2: **{:.4f}**. Rate difference: **{:.4f}**'.format(rate1,rate2,rate1-rate2))
                 st.markdown('**P-Value: '+'{:.3f}**'.format(pval))
@@ -246,12 +249,50 @@ elif plan_eval == 'Plan a test':
                 monthly_samples = col9.number_input('Total monthly samples',min_value=1, step = 1)
                 rates_sample_submit = st.form_submit_button()
                 if rates_sample_submit:
-                    sample_size_calc_rates(exp_rate, test_split, monthly_samples)
+                    sample_size_calc(exp_rate, test_split, exp_rate*(1-exp_rate), monthly_samples)
         elif means_rates2 == 'Mean':
-            st.write('Under construction... Check back soon!')
-            # st.write(acks[0][11] + ''' You will need to upload a sample of the data you expect from this test. Will you need
-            # 0's appended for non-conversion events?
-            # ''')
-            # append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
-            # if append_0s == 'Nope, my data is ready to go as is':
-            #     st.write(acks[0][12] + ''' Please upload your ''')
+            # st.write('Under construction... Check back soon!')
+            st.write(acks[0][11] + ''' You will need to upload a sample of the data you expect from this test. Will you need
+            0's appended for non-conversion events?
+            ''')
+            append_0s = st.sidebar.selectbox("Append 0's?", ['Select One','Yes, please','Nope, my data is ready to go as is'])
+            if append_0s == 'Nope, my data is ready to go as is':
+                st.write(acks[0][12] + ''' Please upload a sample of your data below in a csv with a single named column (the name does not matter). 
+                Ideally, it should be from around the same time of year and of the same time interval as the test you plan to implement.
+                ''')
+                upload = st.file_uploader('Upload data', type='csv')
+                if upload:
+                    with st.form('plan_mean_dont_add_0s'):
+                    
+                        st.write(acks[0][13] + ''' I've filled in the value for the expected OEC based on your data, accounting for outliers if necessary.
+                        Please adjust if you feel this is not accurate, and enter the Test group split percentage and approximate number of monthly samples.
+                        Then click Submit.
+                        ''')
+                        df = pd.read_csv(upload)
+                        col10, col11, col12= st.columns(3)
+                        outliers = is_outlier(df.iloc[:,0])
+                        # print(sum(outliers))
+                        if sum(outliers) > 0:
+                            # data to calculate winsorized variance, which would be used in a trimmed means t-test.
+                            # see https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test
+                            outlier_pct = sum(outliers)/df.shape[0]
+                            data_winsorized = pd.Series(winsorize(df.iloc[:,0],(outlier_pct/2,outlier_pct/2)))
+                            in_var = np.var(data_winsorized)
+                        else:
+                            in_var = np.var(df.iloc[:,0])
+                        in_mean = np.round(df.iloc[:,0][~outliers].mean(),1)
+                        # print(in_mean)
+                        exp_mean = col10.number_input('Expected OEC',value = in_mean, step=.1, format = '%.1f')
+                        test_split = col11.number_input('Test %',0,100)
+                        monthly_samples = col12.number_input('Total monthly samples',min_value=1, step = 1)
+
+                        plan_mean_dont_add_0s = st.form_submit_button()
+                        if plan_mean_dont_add_0s:
+                            sample_size_calc(exp_mean, test_split, in_var, monthly_samples)
+                        # sample_size_calc(exp_mean, test_split, np.var, monthly_samples)
+
+            # if 'plan_mean_dont_add_0s_upload' in globals():
+            #     if plan_mean_dont_add_0s_upload:
+            #         with st.form('plan_mean_dont_add_0s_remainder'):
+                        
+            
