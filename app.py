@@ -280,6 +280,7 @@ elif plan_eval == 'Plan a test':
                             in_var = np.var(data_winsorized)
                         else:
                             in_var = np.var(df.iloc[:,0])
+                        # TODO: SHOULD THIS BE THE TRIMMED MEAN IF APPLICABLE?? probably...
                         in_mean = np.round(df.iloc[:,0][~outliers].mean(),1)
                         # print(in_mean)
                         exp_mean = col10.number_input('Expected OEC',value = in_mean, step=.1, format = '%.1f')
