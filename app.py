@@ -271,16 +271,23 @@ elif plan_eval == 'Plan a test':
                         df = pd.read_csv(upload)
                         col10, col11, col12= st.columns(3)
                         outliers = is_outlier(df.iloc[:,0])
+                        n_outliers = sum(outliers)
                         # print(sum(outliers))
-                        if sum(outliers) > 0:
+                        if n_outliers > 0:
                             # data to calculate winsorized variance, which would be used in a trimmed means t-test.
                             # see https://www.real-statistics.com/students-t-distribution/problems-data-t-tests/trimmed-means-t-test
-                            outlier_pct = sum(outliers)/df.shape[0]
+                            outlier_pct = n_outliers/df.shape[0]
                             data_winsorized = pd.Series(winsorize(df.iloc[:,0],(min(outlier_pct,.5),min(outlier_pct,.5))))
                             in_var = np.var(data_winsorized)
                             # mean will be the trimmed mean as per a trimmed means t test
-                            tmean = df.iloc[:,0].sort_values()[sum(outliers):-sum(outliers)].mean()
+                            sorted = df.iloc[:,0].sort_values()
+                            tmean = sorted[n_outliers:-n_outliers].mean()
                             in_mean = tmean
+                            trimmed_vals = sorted[:n_outliers].append(sorted[-n_outliers:])
+                            trimmed_vals.rename('Values',inplace=True)
+                            trimmed_vals.index = np.arange(1,len(trimmed_vals)+1)
+                            st.write('These values will be adjusted to accomodate the presence of outliers:')
+                            st.write(trimmed_vals)
                         else:
                             in_var = np.var(df.iloc[:,0])
                             in_mean = np.round(df.iloc[:,0].mean(),1)
