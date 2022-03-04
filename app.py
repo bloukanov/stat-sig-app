@@ -271,8 +271,9 @@ elif plan_eval == 'Plan a test':
                 ack13 = ''
 
             if append_0s != 'Select One':
-                st.write(ack13 + '''Now please upload a sample of your data below in a csv with a single named column (the name does not matter). 
+                st.markdown(ack13 + '''Now please upload a sample of your data below in a csv with a single named column (the name does not matter). 
                 Ideally, it should be from around the same time of year and of the same time interval as the test you plan to implement.
+                __Please also group the data to the same level that you plan to test__, i.e. the user or session level.
                 ''')
                 upload = st.file_uploader('Upload data', type='csv')
                 if upload:
