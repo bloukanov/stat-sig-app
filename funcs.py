@@ -335,4 +335,18 @@ def sample_size_calc(expected,split,var_oec,monthly):
     for various percents change to the evaluation metric:
     
     ''')
-    st.dataframe(pd.DataFrame({'Pct Change':pct_changes, 'Total Samples Required':sample_sizes, 'Test Duration': times}),height=500)
+
+    # CSS to inject contained in a string
+    # hide_dataframe_row_index = """
+    #             <style>
+    #             .row_heading.level0 {display:none}
+    #             .blank {display:none}
+    #             </style>
+    #             """
+
+    # Inject CSS with Markdown
+    # st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+    
+    df = pd.DataFrame({'Pct Change':pct_changes, 'Total Samples Required':sample_sizes, 'Test Duration': times})
+    df.index = np.arange(1,df.shape[0]+1)
+    st.dataframe(df,height=500)
