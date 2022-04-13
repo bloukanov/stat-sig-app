@@ -148,6 +148,7 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             # there should be no NAs in this data
             group1 = _group1
             group2 = _group2
+            trim = 0
 
             result = ttest_rel(group1,group2)
 
