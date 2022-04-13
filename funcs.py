@@ -146,7 +146,10 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
 
     elif test_type == 'rel':
             # there should be no NAs in this data
-            result = ttest_rel(_group1,_group2)
+            group1 = _group1
+            group2 = _group2
+
+            result = ttest_rel(group1,group2)
 
     # print(len(group1))
     # print(len(group2))
