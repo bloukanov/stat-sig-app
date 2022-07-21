@@ -212,10 +212,12 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
         st.success('This difference is significant at the 10% level.')
     elif np.isnan(pval):
         st.error('''Your test result couldn't be calculated. Make sure you have at least 2
-        observations in each group!
+        observations in each group, and for a paired t-test, equal sample sizes.
         ''')
     else:
-        st.warning('This difference would not typically be considered statistically significant.')
+        st.warning('''This difference would not typically be considered statistically significant. Be sure to consult
+        the 'Evaluate a test' section to confirm that you have a large enough sample to detect your desired effect size.
+        ''')
 
     if trimmed:
         st.write('''
@@ -271,7 +273,9 @@ def custom_ttest(_group1,_group2,test_type,_0s_desired=None,_0s_included=None,n1
             observations in each group!
             ''')
         else:
-            st.warning('This difference would not typically be considered statistically significant.')
+            st.warning('''This difference would not typically be considered statistically significant. Be sure to consult
+            the 'Evaluate a test' section to confirm that you have a large enough sample to detect your desired effect size.
+            ''')
 
 def ttest_pval_dropdowns():
     st.write('''If you'd like to learn more about t-tests or p-values, click below:''')
@@ -335,7 +339,7 @@ def sample_size_calc(expected,split,var_oec,monthly):
         sample_sizes.append(format(int(math.ceil(n)),',d'))
         times.append('{:.1f}'.format(t))
 
-    st.markdown('''Below are recommended total samples to achieve 80% power and their resulting runtimes in months, 
+    st.markdown('''Below are recommended total samples to achieve 80% power and 95% confidence, and the resulting runtimes in months, 
     for various percents change to the evaluation metric:
     
     ''')
@@ -354,3 +358,4 @@ def sample_size_calc(expected,split,var_oec,monthly):
     df = pd.DataFrame({'Pct Change':pct_changes, 'Total Samples Required':sample_sizes, 'Test Duration': times})
     df.index = np.arange(1,df.shape[0]+1)
     st.dataframe(df,height=500)
+    st.write('Source: Kohavi, Formula 2, p. 152 (assumes a 50/50 split). This can be scaled according to Section 6.2.4, p. 175.')

@@ -68,7 +68,9 @@ if plan_eval == 'Evaluate a test':
                     elif round(pval,3) <= .100:
                         st.success('This difference is significant at the 10% level.')
                     else:
-                        st.warning('This difference would not typically be considered statistically significant.')
+                        st.warning('''This difference would not typically be considered statistically significant. Be sure to consult
+                        the 'Evaluate a test' section to confirm that you have a large enough sample to detect your desired effect size.
+                        ''')
                 else:
                     if round(pval,3) <= .010:
                         st.warning('''This difference is significant at the 1% level.
@@ -89,6 +91,8 @@ if plan_eval == 'Evaluate a test':
                         st.warning('''This difference would not typically be considered statistically significant.
                         However, it is recommended that there be at least 5 action and 5 non-action observations
                         in each group. Your data samples do not meet this criterion, so take these results with a grain of salt.
+                        Be sure to also consult the 'Evaluate a test' section to confirm that you have a large enough sample to 
+                        detect your desired effect size.
                         ''')                  
                 
 
