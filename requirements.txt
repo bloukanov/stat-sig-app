@@ -5,3 +5,4 @@ scipy >= 1.7.0 # trim becomes available here in ttest_ind
 # streamlit
 streamlit == 1.0
 datetime
+protobuf <= 3.20
